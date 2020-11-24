@@ -88,6 +88,7 @@ void Writer_Create( writer_t *self, char *fifo_name )
 	sigemptyset( &self->sa.sa_mask );
 
 	sigaction( SIGUSR1, &self->sa, NULL);
+    sigaction( SIGUSR2, &self->sa, NULL);
 }
 
 
@@ -102,11 +103,17 @@ void Writer_Run( writer_t *self )
         /* Loop forever */
 	while (1)
 	{
-        if ( signal1_flag == true )
+        if ( SIGUSR1 == signal1_flag )
         {
             Protocolo_Encode( &self->protocol, "1\n", SIGNAL );
-            signal1_flag = false;
+            signal1_flag = 0;
         }
+        else if ( SIGUSR2 == signal1_flag )
+        {
+            Protocolo_Encode( &self->protocol, "2\n", SIGNAL );
+            signal1_flag = 0;
+        }
+        
         
 
         /* Get some text from console */
@@ -130,5 +137,5 @@ void Writer_Destroy( writer_t *self )
 
 void _Signal_RX( int sig )
 {
-    signal1_flag = true;
+    signal1_flag = sig;
 }
